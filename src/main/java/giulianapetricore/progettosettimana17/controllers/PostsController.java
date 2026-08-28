@@ -1,9 +1,11 @@
 package giulianapetricore.progettosettimana17.controllers;
 
+import giulianapetricore.progettosettimana17.entities.Like;
 import giulianapetricore.progettosettimana17.entities.Post;
 import giulianapetricore.progettosettimana17.entities.User;
 import giulianapetricore.progettosettimana17.exceptions.ValidationException;
 import giulianapetricore.progettosettimana17.payloads.NewPostDTO;
+import giulianapetricore.progettosettimana17.services.LikesService;
 import giulianapetricore.progettosettimana17.services.PostsService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,9 +22,11 @@ import java.util.stream.Collectors;
 public class PostsController {
 
     private final PostsService postsService;
+    private final LikesService likesService;
 
-    public PostsController(PostsService postsService) {
+    public PostsController(PostsService postsService, LikesService likesService) {
         this.postsService = postsService;
+        this.likesService = likesService;
     }
 
     @GetMapping
@@ -56,5 +60,17 @@ public class PostsController {
             throw new ValidationException(errorsList);
         }
         return this.postsService.findByIdAndUpdate(postId, body);
+    }
+
+    @PostMapping("/{postId}/likes")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Like addLike(@PathVariable UUID postId, @AuthenticationPrincipal User currentUser) {
+        return this.likesService.addLike(postId, currentUser);
+    }
+
+    @DeleteMapping("/{postId}/likes")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeLike(@PathVariable UUID postId, @AuthenticationPrincipal User currentUser) {
+        this.likesService.removeLike(postId, currentUser);
     }
 }
